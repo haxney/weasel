@@ -123,10 +123,10 @@ def main(argv=None):
     if argv is None:
         argv = sys.argv
 
-    init()
-    print_initial()
-    while best_distance > 0:
-        run_generation()
+    sim = WeaselSimulator()
+    sim.print_initial()
+    for ign in sim.generations():
+        pass
 
 if __name__ == "__main__":
     sys.exit(main())
