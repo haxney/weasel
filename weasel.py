@@ -200,13 +200,9 @@ def main(argv=None):
                         help='Initial candidate string.', nargs='?')
     args = parser.parse_args(argv[1:])
 
-    sim = WeaselSimulator(target_phrase=args.target_phrase,
-                          seed=args.seed,
-                          characters=args.characters,
-                          num_children=args.num_children,
-                          mutate_chance=args.mutate_chance,
-                          initial_phrase=args.initial_phrase,
-                          fitness_func=args.fitness_func)
+    # I don't think I'm supposed to use __dict__ directly, but it works here,
+    # so...
+    sim = WeaselSimulator(**args.__dict__)
     sim.print_initial()
     for ign in sim.generations():
         pass
