@@ -79,6 +79,15 @@ def lcs_fitness(s1, s2):
         return len(long_substr(*strings))
     return match_to_ratio(matcher, s1, s2, False)
 
+def overlap_fitness(s1, s2):
+    """Determine fitness by considering only letters in identical positions."""
+    def matcher(a, b):
+        common = 0
+        for i in xrange(min(len(a), len(b))):
+            common += 1 if a[i] == b[i] else 0
+        return common
+    return match_to_ratio(matcher, s1, s2, False)
+
 def random_string(chars, length, rand = random):
     """Generates a random string of `length` characters from `chars`."""
     return ''.join([rand.choice(chars) for ignore in xrange(length)])
@@ -96,7 +105,8 @@ class WeaselSimulator:
     fitness_functions = {'levenshtein': levenshtein_fitness,
                          'sequence': sequence_matcher_fitness,
                          'blocks': matching_blocks_fitness,
-                         'lcs': lcs_fitness}
+                         'lcs': lcs_fitness,
+                         'overlap': overlap_fitness}
 
     def __init__(self,
                  target_phrase = DEFAULTS.target_phrase,
