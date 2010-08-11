@@ -106,10 +106,9 @@ class WeaselSimulator:
             self.generation += 1
             first_child = children.next()
             candidate = (first_child, levenshtein_fitness(self.target_phrase, first_child))
-
             for child in children:
-                dist = levenshtein_fitness(target_phrase, child)
-                if dist < candidate[1]:
+                dist = levenshtein_fitness(self.target_phrase, child)
+                if dist > candidate[1]:
                     candidate = (child, dist)
             print "Generation best fitness: %f" % candidate[1]
             print "Generation best child: '%s'" % candidate[0]
@@ -117,7 +116,7 @@ class WeaselSimulator:
             if candidate[1] >= self.fitness:
                 self.best_candidate, self.fitness = candidate
 
-            print_generation()
+            self.print_generation()
             yield
 
 def main(argv=None):
