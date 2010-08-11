@@ -62,14 +62,15 @@ class WeaselSimulator:
         else:
             self.initial_phrase = random_string(self.characters, self.phrase_length, self.rand)
         self.generation = 0
-        self.fitness = 0.0
         self.candidates = []
         self.best_candidate = self.initial_phrase
+        self.fitness = levenshtein_fitness(self.target_phrase, self.best_candidate)
 
     def print_initial(self):
         """Show some initial information."""
         print("Target: %s" % self.target_phrase)
-        print("Generation: %d" % self.generation)
+        print("Initial phrase: %s" % self.initial_phrase)
+        print("Initial fitness: %f" % levenshtein_fitness(self.target_phrase, self.best_candidate))
         print("Characters: %s" % self.characters)
         print("Number of Children: %d" % self.num_children)
         print("Mutation Chance: %d" % self.mutate_chance)
