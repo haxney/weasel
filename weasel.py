@@ -186,25 +186,27 @@ def main(argv=None):
                         help='Seed for the random number generator.')
     parser.add_argument('--characters', '-c', type=str, default=WeaselSimulator.DEFAULTS.characters,
                         help='Valid characters to try in candidates.')
-    parser.add_argument('--num-children', '-n', type=int, default=WeaselSimulator.DEFAULTS.num_children,
-                        help='Number of children per generation.')
-    parser.add_argument('--mutate-chance', '-m', type=float, default=WeaselSimulator.DEFAULTS.mutate_chance,
-                        help='Chance that any individual character will mutate. A float in [0.0, 1.0].')
+    parser.add_argument('--children', '-n', type=int, default=WeaselSimulator.DEFAULTS.num_children,
+                        help='Number of children per generation.', dest='num_children')
+    parser.add_argument('--mutate', '-m', type=float, default=WeaselSimulator.DEFAULTS.mutate_chance,
+                        help='Chance that any individual character will mutate. A float in [0.0, 1.0].',
+                        dest='mutate_chance')
     parser.add_argument('--fitness', '-f', type=str, default=WeaselSimulator.DEFAULTS.fitness_func,
-                        help='The fitness function to use.', choices=WeaselSimulator.fitness_functions)
+                        help='The fitness function to use.', choices=WeaselSimulator.fitness_functions,
+                        dest='fitness_func')
     parser.add_argument('target', metavar='TARGET', type=str, default=WeaselSimulator.DEFAULTS.target_phrase,
-                        help='Target string.', nargs='?')
+                        help='Target string.', nargs='?', dest='target_phrase')
     parser.add_argument('initial', metavar='INITIAL', type=str, default=None,
-                        help='Initial candidate string.', nargs='?')
+                        help='Initial candidate string.', nargs='?', dest='initial_phrase')
     args = parser.parse_args(argv[1:])
 
-    sim = WeaselSimulator(target_phrase=args.target,
+    sim = WeaselSimulator(target_phrase=args.target_phrase,
                           seed=args.seed,
                           characters=args.characters,
                           num_children=args.num_children,
                           mutate_chance=args.mutate_chance,
-                          initial_phrase=args.initial,
-                          fitness_func=args.fitness)
+                          initial_phrase=args.initial_phrase,
+                          fitness_func=args.fitness_func)
     sim.print_initial()
     for ign in sim.generations():
         pass
