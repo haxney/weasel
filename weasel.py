@@ -100,10 +100,10 @@ class WeaselSimulator:
         seed = random.randrange(sys.maxint)
         characters = string.uppercase + ' '
         num_children = 100
-        mutate_chance = 0.05
-        fitness_func = 'levenshtein'
-        rotate_chance = 0.05
-        rotate_bound = 10
+        mutate_chance = 0.1
+        fitness_func = 'overlap'
+        rotate_chance = 0.1
+        rotate_bound = 5
         sync_rotate = False
 
     fitness_functions = {'levenshtein': levenshtein_fitness,
