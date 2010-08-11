@@ -103,6 +103,7 @@ class WeaselSimulator:
         mutate_chance = 0.05
         fitness_func = 'levenshtein'
         rotate_chance = 0.05
+        rotate_bound = 10
 
     fitness_functions = {'levenshtein': levenshtein_fitness,
                          'sequence': sequence_matcher_fitness,
@@ -118,7 +119,8 @@ class WeaselSimulator:
                  mutate_chance = DEFAULTS.mutate_chance,
                  initial_phrase = None,
                  fitness_func = DEFAULTS.fitness_func,
-                 rotate_chance = DEFAULTS.rotate_chance):
+                 rotate_chance = DEFAULTS.rotate_chance,
+                 rotate_bound = DEFAULTS.rotate_bound):
         self.target_phrase = target_phrase
         self.phrase_length = len(self.target_phrase)
         self.rand = random.Random(seed)
@@ -132,6 +134,7 @@ class WeaselSimulator:
         self.fitness_func = WeaselSimulator.fitness_functions[fitness_func]
         self.fitness_func_name = fitness_func
         self.rotate_chance = rotate_chance
+        self.rotate_bound = rotate_bound
 
         self.generation = 0
         self.candidates = []
@@ -172,7 +175,8 @@ class WeaselSimulator:
             return source
 
     def rotate(self, source):
-        amount = self.rand.randint(-self.phrase_length, self.phrase_length)
+        bound = min(self.rotate_bound, self.rand.randrange(self.phrase_length))
+        amount = self.rand.randint(-bound, bound)
         d = collections.deque(source)
         d.rotate(amount)
         res = ''.join(d)
@@ -227,6 +231,9 @@ def main(argv=None):
     parser.add_argument('--rotate', '-r', type=float, default=WeaselSimulator.DEFAULTS.rotate_chance,
                         help='Chance that the string will be rotated. A float in [0.0, 1.0].',
                         dest='rotate_chance')
+    parser.add_argument('--rotate-bound', '-b', type=int, default=WeaselSimulator.DEFAULTS.rotate_bound,
+                        help='Maximum amount by which the string will be rotated.',
+                        dest='rotate_bound')
     parser.add_argument('target_phrase', metavar='TARGET', type=str, default=WeaselSimulator.DEFAULTS.target_phrase,
                         help='Target string.', nargs='?')
     parser.add_argument('initial_phrase', metavar='INITIAL', type=str, default=None,
