@@ -101,7 +101,7 @@ class WeaselSimulator:
         characters = string.uppercase + ' '
         num_children = 100
         mutate_chance = 0.1
-        fitness_func = 'overlap'
+        fitness = ['overlap']
         rotate_chance = 0.1
         rotate_bound = 5
         sync_rotate = False
@@ -119,7 +119,7 @@ class WeaselSimulator:
                  num_children = DEFAULTS.num_children,
                  mutate_chance = DEFAULTS.mutate_chance,
                  initial_phrase = None,
-                 fitness_func = DEFAULTS.fitness_func,
+                 fitness = DEFAULTS.fitness,
                  rotate_chance = DEFAULTS.rotate_chance,
                  rotate_bound = DEFAULTS.rotate_bound,
                  sync_rotate = DEFAULTS.sync_rotate):
@@ -133,8 +133,8 @@ class WeaselSimulator:
             self.initial_phrase = initial_phrase
         else:
             self.initial_phrase = random_string(self.characters, self.phrase_length, self.rand)
-        self.fitness_func = WeaselSimulator.fitness_functions[fitness_func]
-        self.fitness_func_name = fitness_func
+        self.fitness = [WeaselSimulator.fitness_functions.get(i) for i in fitness]
+        self.fitness_names = fitness
         self.rotate_chance = rotate_chance
         self.rotate_bound = rotate_bound
         self.sync_rotate = sync_rotate
@@ -142,14 +142,14 @@ class WeaselSimulator:
         self.generation = 0
         self.candidates = []
         self.best_candidate = self.initial_phrase
-        self.fitness = self.fitness_func(self.target_phrase, self.best_candidate)
+        self.current_fitness = self.calc_fitness(self.target_phrase, self.best_candidate)
 
     def print_initial(self):
         """Show some initial information."""
         print("Target: '%s'" % self.target_phrase)
-        print("Fitness Function: '%s'" % self.fitness_func_name)
+        print("Fitness Functions: %r" % self.fitness_names)
         print("Initial phrase: '%s'" % self.initial_phrase)
-        print("Initial fitness: %f" % self.fitness_func(self.target_phrase, self.best_candidate))
+        print("Initial fitness: %f" % self.calc_fitness(self.target_phrase, self.best_candidate))
         print("Characters: '%s'" % self.characters)
         print("Number of Children: %d" % self.num_children)
         print("Mutation Chance: %f" % self.mutate_chance)
@@ -158,8 +158,11 @@ class WeaselSimulator:
     def print_generation(self):
         print("Generation: %d" % self.generation)
         print("Best Child: '%s'" % self.best_candidate)
-        print("Current Fitness: %f" % self.fitness)
+        print("Current Fitness: %f" % self.current_fitness)
         print("------\n")
+
+    def calc_fitness(self, target, candidate):
+        return sum([func(target, candidate) for func in self.fitness]) / len(self.fitness)
 
     def flip(self, p):
         return self.rand.random() < p
@@ -202,16 +205,16 @@ class WeaselSimulator:
             children = self.children(parent)
             self.generation += 1
             first_child = children.next()
-            candidate = (first_child, self.fitness_func(self.target_phrase, first_child))
+            candidate = (first_child, self.calc_fitness(self.target_phrase, first_child))
             for child in children:
-                dist = self.fitness_func(self.target_phrase, child)
+                dist = self.calc_fitness(self.target_phrase, child)
                 if dist > candidate[1]:
                     candidate = (child, dist)
             print "Generation best fitness: %f" % candidate[1]
             print "Generation best child: '%s'" % candidate[0]
-            print "Distance from parent: %f" % self.fitness_func(parent, candidate[0])
-            if candidate[1] >= self.fitness:
-                self.best_candidate, self.fitness = candidate
+            print "Distance from parent: %f" % self.calc_fitness(parent, candidate[0])
+            if candidate[1] >= self.current_fitness:
+                self.best_candidate, self.current_fitness = candidate
 
             self.print_generation()
             yield
@@ -230,9 +233,9 @@ def main(argv=None):
     parser.add_argument('--mutate', '-m', type=float, default=WeaselSimulator.DEFAULTS.mutate_chance,
                         help='Chance that any individual character will mutate. A float in [0.0, 1.0].',
                         dest='mutate_chance')
-    parser.add_argument('--fitness', '-f', type=str, default=WeaselSimulator.DEFAULTS.fitness_func,
-                        help='The fitness function to use.', choices=WeaselSimulator.fitness_functions,
-                        dest='fitness_func')
+    parser.add_argument('--fitness', '-f', type=str, default=argparse.SUPPRESS,
+                        help='The fitness functions to use.', choices=WeaselSimulator.fitness_functions,
+                        dest='fitness', action='append')
     parser.add_argument('--rotate', '-r', type=float, default=WeaselSimulator.DEFAULTS.rotate_chance,
                         help='Chance that the string will be rotated. A float in [0.0, 1.0].',
                         dest='rotate_chance')
@@ -241,7 +244,7 @@ def main(argv=None):
                         dest='rotate_bound')
     parser.add_argument('--sync-rotate', '-s', default=WeaselSimulator.DEFAULTS.sync_rotate,
                         help='If True, rotate the entire generation at once. (default: %(default)s)',
-                        action='store_const', const=True, dest='sync_rotate')
+                        nargs='?', const=True, dest='sync_rotate')
     parser.add_argument('target_phrase', metavar='TARGET', type=str, default=WeaselSimulator.DEFAULTS.target_phrase,
                         help='Target string.', nargs='?')
     parser.add_argument('initial_phrase', metavar='INITIAL', type=str, default=None,
