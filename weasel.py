@@ -104,6 +104,7 @@ class WeaselSimulator:
         fitness_func = 'levenshtein'
         rotate_chance = 0.05
         rotate_bound = 10
+        sync_rotate = False
 
     fitness_functions = {'levenshtein': levenshtein_fitness,
                          'sequence': sequence_matcher_fitness,
@@ -120,7 +121,8 @@ class WeaselSimulator:
                  initial_phrase = None,
                  fitness_func = DEFAULTS.fitness_func,
                  rotate_chance = DEFAULTS.rotate_chance,
-                 rotate_bound = DEFAULTS.rotate_bound):
+                 rotate_bound = DEFAULTS.rotate_bound,
+                 sync_rotate = DEFAULTS.sync_rotate):
         self.target_phrase = target_phrase
         self.phrase_length = len(self.target_phrase)
         self.rand = random.Random(seed)
@@ -135,6 +137,7 @@ class WeaselSimulator:
         self.fitness_func_name = fitness_func
         self.rotate_chance = rotate_chance
         self.rotate_bound = rotate_bound
+        self.sync_rotate = sync_rotate
 
         self.generation = 0
         self.candidates = []
@@ -183,11 +186,13 @@ class WeaselSimulator:
         return res
 
     def mutate_copy(self, source):
-        #rotated = self.rotate_maybe(source)
+        if not self.sync_rotate:
+            source = self.rotate_maybe(source)
         return ''.join(map(self.mutate_letter_maybe, source))
 
     def children(self, parent):
-        parent = self.rotate_maybe(parent)
+        if self.sync_rotate:
+            parent = self.rotate_maybe(parent)
         for i in xrange(self.num_children):
             yield self.mutate_copy(parent)
 
@@ -216,7 +221,7 @@ def main(argv=None):
         argv = sys.argv
 
     parser = argparse.ArgumentParser(description='Simulate a weasel.')
-    parser.add_argument('--seed', '-s', type=int, default=WeaselSimulator.DEFAULTS.seed,
+    parser.add_argument('--seed', '-i', type=int, default=WeaselSimulator.DEFAULTS.seed,
                         help='Seed for the random number generator.')
     parser.add_argument('--characters', '-c', type=str, default=WeaselSimulator.DEFAULTS.characters,
                         help='Valid characters to try in candidates.')
@@ -234,6 +239,9 @@ def main(argv=None):
     parser.add_argument('--rotate-bound', '-b', type=int, default=WeaselSimulator.DEFAULTS.rotate_bound,
                         help='Maximum amount by which the string will be rotated.',
                         dest='rotate_bound')
+    parser.add_argument('--sync-rotate', '-s', default=WeaselSimulator.DEFAULTS.sync_rotate,
+                        help='If True, rotate the entire generation at once. (default: %(default)s)',
+                        action='store_const', const=True, dest='sync_rotate')
     parser.add_argument('target_phrase', metavar='TARGET', type=str, default=WeaselSimulator.DEFAULTS.target_phrase,
                         help='Target string.', nargs='?')
     parser.add_argument('initial_phrase', metavar='INITIAL', type=str, default=None,
