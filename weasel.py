@@ -37,18 +37,19 @@ def random_string(chars, length, rand = random):
 
 class WeaselSimulator:
     """A genetic simulator."""
-    target_phrase = 'METHINKS IT IS LIKE A WEASEL'
-    seed = random.random()
-    characters = string.uppercase + ' '
-    num_children = 100
-    mutate_chance = 0.05
+    class DEFAULTS:
+        target_phrase = 'METHINKS IT IS LIKE A WEASEL'
+        seed = random.random()
+        characters = string.uppercase + ' '
+        num_children = 100
+        mutate_chance = 0.05
 
     def __init__(self,
-                 target_phrase = target_phrase,
-                 seed = seed,
-                 characters = characters,
-                 num_children = num_children,
-                 mutate_chance = mutate_chance,
+                 target_phrase = DEFAULTS.target_phrase,
+                 seed = DEFAULTS.seed,
+                 characters = DEFAULTS.characters,
+                 num_children = DEFAULTS.num_children,
+                 mutate_chance = DEFAULTS.mutate_chance,
                  initial_phrase = None):
         self.target_phrase = target_phrase
         self.phrase_length = len(self.target_phrase)
