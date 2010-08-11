@@ -39,7 +39,7 @@ class WeaselSimulator:
     """A genetic simulator."""
     class DEFAULTS:
         target_phrase = 'METHINKS IT IS LIKE A WEASEL'
-        seed = random.random()
+        seed = random.randrange(sys.maxint)
         characters = string.uppercase + ' '
         num_children = 100
         mutate_chance = 0.05
