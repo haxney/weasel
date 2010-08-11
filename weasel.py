@@ -168,7 +168,7 @@ class WeaselSimulator:
             yield self.mutate_copy(parent)
 
     def generations(self):
-        while self.best_candidate is not self.target_phrase:
+        while self.best_candidate != self.target_phrase:
             parent = self.best_candidate
             children = self.children(parent)
             self.generation += 1
