@@ -31,6 +31,10 @@ def levenshtein_fitness(s1, s2):
     Returns a float in the range [0.0, 1.0]."""
     return abs(levenshtein(s1, s2) / max(len(s1), len(s2)) - 1)
 
+def random_string(chars, length, rand = random):
+    """Generates a random string of `length` characters from `chars`."""
+    return ''.join([rand.choice(chars) for ignore in xrange(length)])
+
 class WeaselSimulator:
     """A genetic simulator."""
     target_phrase = 'METHINKS IT IS LIKE A WEASEL'
@@ -60,10 +64,6 @@ class WeaselSimulator:
         self.fitness = 0.0
         self.candidates = []
         self.best_candidate = self.initial_phrase
-
-    def random_string(chars, length, rand = random):
-        """Generates a random string of `length` characters from `chars`."""
-        return ''.join([rand.choice(chars) for ignore in xrange(length)])
 
     def print_initial(self):
         """Show some initial information."""
