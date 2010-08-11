@@ -194,10 +194,10 @@ def main(argv=None):
     parser.add_argument('--fitness', '-f', type=str, default=WeaselSimulator.DEFAULTS.fitness_func,
                         help='The fitness function to use.', choices=WeaselSimulator.fitness_functions,
                         dest='fitness_func')
-    parser.add_argument('target', metavar='TARGET', type=str, default=WeaselSimulator.DEFAULTS.target_phrase,
-                        help='Target string.', nargs='?', dest='target_phrase')
-    parser.add_argument('initial', metavar='INITIAL', type=str, default=None,
-                        help='Initial candidate string.', nargs='?', dest='initial_phrase')
+    parser.add_argument('target_phrase', metavar='TARGET', type=str, default=WeaselSimulator.DEFAULTS.target_phrase,
+                        help='Target string.', nargs='?')
+    parser.add_argument('initial_phrase', metavar='INITIAL', type=str, default=None,
+                        help='Initial candidate string.', nargs='?')
     args = parser.parse_args(argv[1:])
 
     sim = WeaselSimulator(target_phrase=args.target_phrase,
