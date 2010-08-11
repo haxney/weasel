@@ -81,45 +81,43 @@ class WeaselSimulator:
         print("Current Fitness: %d" % self.fitness)
         print("------\n")
 
-def make_children(parent):
-    return [mutate_copy(parent) for i in xrange(num_children)]
+    def flip(self, p):
+        return self.rand.random() < p
 
-def mutate_letter_maybe(letter):
-    return random.choice(characters) if (flip(mutate_chance)) else letter
+    def mutate_letter_maybe(self, letter):
+        """Return a (possibly) mutated version of letter.
 
-def mutate_copy(source):
-    return ''.join(map(mutate_letter_maybe, source))
+        self.mutate_chance determines how likely it is for the letter to
+        mutate."""
+        return self.rand.choice(self.characters) if (self.flip(self.mutate_chance)) else letter
 
-def flip(p):
-    return random.random() < p
+    def mutate_copy(self, source):
+        return ''.join(map(self.mutate_letter_maybe, source))
 
-def run_generation():
-    global best_child, best_distance, generation
-    parent = best_child
-    children = make_children(parent)
-    generation += 1
-    new_parent = children[0]
-    child_dist = levenshtein(target_phrase, best_child)
-    parent_dist = -1
-    for child in children:
-        dist = levenshtein(target_phrase, child)
-        if dist < child_dist:
-            child_dist = dist
-            new_parent = child
-            parent_dist = levenshtein(parent, child)
-    print "Generation best dist: %d" % child_dist
-    print "Generation best child: '%s'" % child
-    print "Distance from parent: %d" % parent_dist
-    if child_dist <= best_distance:
-        best_distance = child_dist
-        best_child = new_parent
+    def children(self, parent):
+        for i in xrange(self.num_children):
+            yield self.mutate_copy(parent)
 
-    print_generation()
+    def generations(self):
+        while self.fitness is not 1.0:
+            parent = self.best_candidate
+            children = self.children(parent)
+            self.generation += 1
+            first_child = children.next()
+            candidate = (first_child, levenshtein_fitness(self.target_phrase, first_child))
 
-def init():
-    global best_child, best_distance
-    best_child = ''.join([random.choice(characters) for i in xrange(len(target_phrase))])
-    best_distance = levenshtein(target_phrase, best_child)
+            for child in children:
+                dist = levenshtein_fitness(target_phrase, child)
+                if dist < candidate[1]:
+                    candidate = (child, dist)
+            print "Generation best fitness: %d" % candidate[1]
+            print "Generation best child: '%s'" % candidate[0]
+            print "Distance from parent: %f" % levenshtein_fitness(parent, candidate[0])
+            if candidate[1] >= self.fitness:
+                self.best_candidate, self.fitness = candidate
+
+            print_generation()
+            yield
 
 def main(argv=None):
     if argv is None:
