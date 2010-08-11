@@ -28,13 +28,17 @@ def levenshtein(s1, s2):
 
     return previous_row[-1]
 
-def match_to_ratio(matcher, s1, s2):
+def match_to_ratio(matcher, s1, s2, inverse=True):
     """Turns a number of matched characters into a ratio.
 
     Calls matcher(s1, s2), and divides the number of matched characters by the
     length of the longer string. This produces a "ratio" of matched characters,
-    which will be 1.0 if s1 == s2."""
-    return abs(matcher(s1, s2) / max(len(s1), len(s2)) - 1)
+    which will be 1.0 if s1 == s2.
+
+    If `invert` is False, then assume that the number returned from matcher() is
+    the number of matching characters, rather than the number of non-matching
+    characters (the default)."""
+    return abs(matcher(s1, s2) / max(len(s1), len(s2)) - inverse)
 
 def levenshtein_fitness(s1, s2):
     """Calculate fitness based on Levenshtein distance.
@@ -48,10 +52,9 @@ def sequence_matcher_fitness(s1, s2):
 def matching_blocks_fitness(s1, s2):
     """Use SequenceMatcher.get_matching_blocks() to get a fitness."""
     def matcher(a, b):
-        sum(map(lambda i: i[2], difflib.SequenceMatcher(None, a, b).get_matching_blocks()))
+        return sum(map(lambda i: i[2], difflib.SequenceMatcher(None, a, b).get_matching_blocks()))
 
-    return match_to_ratio(matcher, s1, s2)
-
+    return match_to_ratio(matcher, s1, s2, False)
 
 def random_string(chars, length, rand = random):
     """Generates a random string of `length` characters from `chars`."""
