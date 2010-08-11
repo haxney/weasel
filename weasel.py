@@ -6,6 +6,7 @@ import random
 import string
 import sys
 import argparse
+import difflib
 
 # From https://secure.wikimedia.org/wikibooks/en/wiki/Algorithm_implementation/Strings/Levenshtein_distance#Python
 def levenshtein(s1, s2):
@@ -27,10 +28,30 @@ def levenshtein(s1, s2):
 
     return previous_row[-1]
 
+def match_to_ratio(matcher, s1, s2):
+    """Turns a number of matched characters into a ratio.
+
+    Calls matcher(s1, s2), and divides the number of matched characters by the
+    length of the longer string. This produces a "ratio" of matched characters,
+    which will be 1.0 if s1 == s2."""
+    return abs(matcher(s1, s2) / max(len(s1), len(s2)) - 1)
+
 def levenshtein_fitness(s1, s2):
     """Calculate fitness based on Levenshtein distance.
     Returns a float in the range [0.0, 1.0]."""
-    return abs(levenshtein(s1, s2) / max(len(s1), len(s2)) - 1)
+    return match_to_ratio(levenshtein, s1, s2)
+
+def sequence_matcher_fitness(s1, s2):
+    """Use SequenceMatcher.ratio() to get a fitness distance."""
+    return difflib.SequenceMatcher(None, s1, s2).ratio()
+
+def matching_blocks_fitness(s1, s2):
+    """Use SequenceMatcher.get_matching_blocks() to get a fitness."""
+    def matcher(a, b):
+        sum(map(lambda i: i[2], difflib.SequenceMatcher(None, a, b).get_matching_blocks()))
+
+    return match_to_ratio(matcher, s1, s2)
+
 
 def random_string(chars, length, rand = random):
     """Generates a random string of `length` characters from `chars`."""
