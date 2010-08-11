@@ -1,0 +1,101 @@
+#!/usr/bin/env python
+
+import random
+import string
+import sys
+
+target_phrase = 'METHINKS IT IS LIKE A WEASEL'
+generation = 0
+seed = random.random()
+characters = string.uppercase + ' '
+num_children = 100
+children = []
+best_child = ''
+best_distance = len(target_phrase)
+mutate_chance = 0.05
+
+def print_initial():
+    print "Target: %s" % target_phrase
+    print "Generation: %d" % generation
+    print "Seed: %s" % seed
+    print "Characters: %s" % characters
+    print "Number of Children: %d" % num_children
+    print "Mutation Chance: %d" % mutate_chance
+    print "------\n\n"
+
+def print_generation():
+    print "Generation: %d" % generation
+    print "Best Child: '%s'" % best_child
+    print "Best Distance: %d" % best_distance
+    print "------\n\n"
+
+# From https://secure.wikimedia.org/wikibooks/en/wiki/Algorithm_implementation/Strings/Levenshtein_distance#Python
+def levenshtein(s1, s2):
+    if len(s1) < len(s2):
+        return levenshtein(s2, s1)
+    if not s1:
+        return len(s2)
+
+    previous_row = xrange(len(s2) + 1)
+    for i, c1 in enumerate(s1):
+        current_row = [i + 1]
+        for j, c2 in enumerate(s2):
+            insertions = previous_row[j + 1] + 1 # j+1 instead of j since previous_row and current_row are one character longer
+            deletions = current_row[j] + 1       # than s2
+            substitutions = previous_row[j] + (c1 != c2)
+            current_row.append(min(insertions, deletions, substitutions))
+        previous_row = current_row
+
+    return previous_row[-1]
+
+def make_children(parent):
+    return [mutate_copy(parent) for i in xrange(num_children)]
+
+def mutate_letter_maybe(letter):
+    return random.choice(characters) if (flip(mutate_chance)) else letter
+
+def mutate_copy(source):
+    return ''.join(map(mutate_letter_maybe, source))
+
+def flip(p):
+    return random.random() < p
+
+def run_generation():
+    global best_child, best_distance, generation
+    parent = best_child
+    children = make_children(parent)
+    generation += 1
+    new_parent = children[0]
+    child_dist = levenshtein(target_phrase, best_child)
+    parent_dist = -1
+    for child in children:
+        dist = levenshtein(target_phrase, child)
+        if dist < child_dist:
+            child_dist = dist
+            new_parent = child
+            parent_dist = levenshtein(parent, child)
+    print "Generation best dist: %d" % child_dist
+    print "Generation best child: '%s'" % child
+    print "Distance from parent: %d" % parent_dist
+    if child_dist <= best_distance:
+        best_distance = child_dist
+        best_child = new_parent
+
+    print_generation()
+
+def init():
+    global best_child, best_distance
+    best_child = ''.join([random.choice(characters) for i in xrange(len(target_phrase))])
+    best_distance = levenshtein(target_phrase, best_child)
+
+def main(argv=None):
+    if argv is None:
+        argv = sys.argv
+
+    init()
+    print_initial()
+    while best_distance > 0:
+        run_generation()
+
+if __name__ == "__main__":
+    sys.exit(main())
