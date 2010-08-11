@@ -68,6 +68,11 @@ class WeaselSimulator:
         characters = string.uppercase + ' '
         num_children = 100
         mutate_chance = 0.05
+        fitness_func = 'levenshtein'
+
+    fitness_functions = {'levenshtein': levenshtein_fitness,
+                         'sequence': sequence_matcher_fitness,
+                         'blocks': matching_blocks_fitness}
 
     def __init__(self,
                  target_phrase = DEFAULTS.target_phrase,
@@ -75,7 +80,8 @@ class WeaselSimulator:
                  characters = DEFAULTS.characters,
                  num_children = DEFAULTS.num_children,
                  mutate_chance = DEFAULTS.mutate_chance,
-                 initial_phrase = None):
+                 initial_phrase = None,
+                 fitness_func = DEFAULTS.fitness_func):
         self.target_phrase = target_phrase
         self.phrase_length = len(self.target_phrase)
         self.rand = random.Random(seed)
@@ -86,16 +92,19 @@ class WeaselSimulator:
             self.initial_phrase = initial_phrase
         else:
             self.initial_phrase = random_string(self.characters, self.phrase_length, self.rand)
+        self.fitness_func = WeaselSimulator.fitness_functions[fitness_func]
+        self.fitness_func_name = fitness_func
         self.generation = 0
         self.candidates = []
         self.best_candidate = self.initial_phrase
-        self.fitness = levenshtein_fitness(self.target_phrase, self.best_candidate)
+        self.fitness = self.fitness_func(self.target_phrase, self.best_candidate)
 
     def print_initial(self):
         """Show some initial information."""
         print("Target: '%s'" % self.target_phrase)
+        print("Fitness Function: '%s'" % self.fitness_func_name)
         print("Initial phrase: '%s'" % self.initial_phrase)
-        print("Initial fitness: %f" % levenshtein_fitness(self.target_phrase, self.best_candidate))
+        print("Initial fitness: %f" % self.fitness_func(self.target_phrase, self.best_candidate))
         print("Characters: '%s'" % self.characters)
         print("Number of Children: %d" % self.num_children)
         print("Mutation Chance: %f" % self.mutate_chance)
@@ -130,14 +139,14 @@ class WeaselSimulator:
             children = self.children(parent)
             self.generation += 1
             first_child = children.next()
-            candidate = (first_child, levenshtein_fitness(self.target_phrase, first_child))
+            candidate = (first_child, self.fitness_func(self.target_phrase, first_child))
             for child in children:
-                dist = levenshtein_fitness(self.target_phrase, child)
+                dist = self.fitness_func(self.target_phrase, child)
                 if dist > candidate[1]:
                     candidate = (child, dist)
             print "Generation best fitness: %f" % candidate[1]
             print "Generation best child: '%s'" % candidate[0]
-            print "Distance from parent: %f" % levenshtein_fitness(parent, candidate[0])
+            print "Distance from parent: %f" % self.fitness_func(parent, candidate[0])
             if candidate[1] >= self.fitness:
                 self.best_candidate, self.fitness = candidate
 
@@ -157,6 +166,8 @@ def main(argv=None):
                         help='Number of children per generation.')
     parser.add_argument('--mutate-chance', '-m', type=float, default=WeaselSimulator.DEFAULTS.mutate_chance,
                         help='Chance that any individual character will mutate. A float in [0.0, 1.0].')
+    parser.add_argument('--fitness', '-f', type=str, default=WeaselSimulator.DEFAULTS.fitness_func,
+                        help='The fitness function to use.', choices=WeaselSimulator.fitness_functions)
     parser.add_argument('target', metavar='TARGET', type=str, default=WeaselSimulator.DEFAULTS.target_phrase,
                         help='Target string.', nargs='?')
     parser.add_argument('initial', metavar='INITIAL', type=str, default=None,
@@ -168,7 +179,8 @@ def main(argv=None):
                           characters=args.characters,
                           num_children=args.num_children,
                           mutate_chance=args.mutate_chance,
-                          initial_phrase=args.initial)
+                          initial_phrase=args.initial,
+                          fitness_func=args.fitness)
     sim.print_initial()
     for ign in sim.generations():
         pass
