@@ -73,13 +73,13 @@ class WeaselSimulator:
         print("Initial fitness: %f" % levenshtein_fitness(self.target_phrase, self.best_candidate))
         print("Characters: %s" % self.characters)
         print("Number of Children: %d" % self.num_children)
-        print("Mutation Chance: %d" % self.mutate_chance)
+        print("Mutation Chance: %f" % self.mutate_chance)
         print("------\n")
 
     def print_generation(self):
         print("Generation: %d" % self.generation)
         print("Best Child: '%s'" % self.best_candidate)
-        print("Current Fitness: %d" % self.fitness)
+        print("Current Fitness: %f" % self.fitness)
         print("------\n")
 
     def flip(self, p):
@@ -111,7 +111,7 @@ class WeaselSimulator:
                 dist = levenshtein_fitness(target_phrase, child)
                 if dist < candidate[1]:
                     candidate = (child, dist)
-            print "Generation best fitness: %d" % candidate[1]
+            print "Generation best fitness: %f" % candidate[1]
             print "Generation best child: '%s'" % candidate[0]
             print "Distance from parent: %f" % levenshtein_fitness(parent, candidate[0])
             if candidate[1] >= self.fitness:
