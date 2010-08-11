@@ -1,36 +1,14 @@
 #!/usr/bin/env python
 
+from __future__ import division
+
 import random
 import string
 import sys
 
-target_phrase = 'METHINKS IT IS LIKE A WEASEL'
-generation = 0
-seed = random.random()
-characters = string.uppercase + ' '
-num_children = 100
-children = []
-best_child = ''
-best_distance = len(target_phrase)
-mutate_chance = 0.05
-
-def print_initial():
-    print "Target: %s" % target_phrase
-    print "Generation: %d" % generation
-    print "Seed: %s" % seed
-    print "Characters: %s" % characters
-    print "Number of Children: %d" % num_children
-    print "Mutation Chance: %d" % mutate_chance
-    print "------\n\n"
-
-def print_generation():
-    print "Generation: %d" % generation
-    print "Best Child: '%s'" % best_child
-    print "Best Distance: %d" % best_distance
-    print "------\n\n"
-
 # From https://secure.wikimedia.org/wikibooks/en/wiki/Algorithm_implementation/Strings/Levenshtein_distance#Python
 def levenshtein(s1, s2):
+    """Calculate the Levenshtein distance between two strings"""
     if len(s1) < len(s2):
         return levenshtein(s2, s1)
     if not s1:
@@ -47,6 +25,55 @@ def levenshtein(s1, s2):
         previous_row = current_row
 
     return previous_row[-1]
+
+def levenshtein_fitness(s1, s2):
+    """Calculate fitness based on Levenshtein distance.
+    Returns a float in the range [0.0, 1.0]."""
+    return abs(levenshtein(s1, s2) / max(len(s1), len(s2)) - 1)
+
+class WeaselSimulator:
+    """A genetic simulator."""
+    target_phrase = 'METHINKS IT IS LIKE A WEASEL'
+    seed = random.random()
+    characters = string.uppercase + ' '
+    num_children = 100
+    mutate_chance = 0.05
+
+    def __init__(self,
+                 target_phrase = target_phrase,
+                 seed = seed,
+                 characters = characters,
+                 num_children = num_children,
+                 mutate_chance = mutate_chance,
+                 initial_phrase = None):
+        self.target_phrase = target_phrase
+        self.rand = random.Random(seed)
+        self.characters = characters
+        self.num_children = num_children
+        self.mutate_chance = mutate_chance
+        if initial_phrase:
+            self.initial_phrase = initial_phrase
+        else:
+            self.initial_phrase = ''.join([self.rand.choice(characters) for i in xrange(len(target_phrase))])
+        self.generation = 0
+        self.fitness = 0.0
+        self.candidates = []
+        self.best_candidate = self.initial_phrase
+
+    def print_initial(self):
+        """Show some initial information."""
+        print("Target: %s" % self.target_phrase)
+        print("Generation: %d" % self.generation)
+        print("Characters: %s" % self.characters)
+        print("Number of Children: %d" % self.num_children)
+        print("Mutation Chance: %d" % self.mutate_chance)
+        print("------\n")
+
+    def print_generation(self):
+        print("Generation: %d" % self.generation)
+        print("Best Child: '%s'" % self.best_candidate)
+        print("Current Fitness: %d" % self.fitness)
+        print("------\n")
 
 def make_children(parent):
     return [mutate_copy(parent) for i in xrange(num_children)]
