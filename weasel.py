@@ -68,10 +68,10 @@ class WeaselSimulator:
 
     def print_initial(self):
         """Show some initial information."""
-        print("Target: %s" % self.target_phrase)
-        print("Initial phrase: %s" % self.initial_phrase)
+        print("Target: '%s'" % self.target_phrase)
+        print("Initial phrase: '%s'" % self.initial_phrase)
         print("Initial fitness: %f" % levenshtein_fitness(self.target_phrase, self.best_candidate))
-        print("Characters: %s" % self.characters)
+        print("Characters: '%s'" % self.characters)
         print("Number of Children: %d" % self.num_children)
         print("Mutation Chance: %f" % self.mutate_chance)
         print("------\n")
