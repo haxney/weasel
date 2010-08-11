@@ -47,6 +47,7 @@ class WeaselSimulator:
                  mutate_chance = mutate_chance,
                  initial_phrase = None):
         self.target_phrase = target_phrase
+        self.phrase_length = len(self.target_phrase)
         self.rand = random.Random(seed)
         self.characters = characters
         self.num_children = num_children
@@ -54,11 +55,15 @@ class WeaselSimulator:
         if initial_phrase:
             self.initial_phrase = initial_phrase
         else:
-            self.initial_phrase = ''.join([self.rand.choice(characters) for i in xrange(len(target_phrase))])
+            self.initial_phrase = random_string(self.characters, self.phrase_length, self.rand)
         self.generation = 0
         self.fitness = 0.0
         self.candidates = []
         self.best_candidate = self.initial_phrase
+
+    def random_string(chars, length, rand = random):
+        """Generates a random string of `length` characters from `chars`."""
+        return ''.join([rand.choice(chars) for ignore in xrange(length)])
 
     def print_initial(self):
         """Show some initial information."""
