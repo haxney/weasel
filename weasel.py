@@ -56,6 +56,29 @@ def matching_blocks_fitness(s1, s2):
 
     return match_to_ratio(matcher, s1, s2, False)
 
+# From http://stackoverflow.com/questions/2892931
+def long_substr(*strings):
+    substr = ''
+    if len(strings) > 1 and len(strings[0]) > 0:
+        for i in range(len(strings[0])):
+            for j in range(len(strings[0])-i+1):
+                if j > len(substr) and is_substr(strings[0][i:i+j], strings):
+                    substr = strings[0][i:i+j]
+    return substr
+
+def is_substr(find, data):
+    if len(data) < 1 and len(find) < 1:
+        return False
+    for i in range(len(data)):
+        if find not in data[i]:
+            return False
+    return True
+
+def lcs_fitness(s1, s2):
+    def matcher(*strings):
+        return len(long_substr(*strings))
+    return match_to_ratio(matcher, s1, s2, False)
+
 def random_string(chars, length, rand = random):
     """Generates a random string of `length` characters from `chars`."""
     return ''.join([rand.choice(chars) for ignore in xrange(length)])
@@ -72,7 +95,8 @@ class WeaselSimulator:
 
     fitness_functions = {'levenshtein': levenshtein_fitness,
                          'sequence': sequence_matcher_fitness,
-                         'blocks': matching_blocks_fitness}
+                         'blocks': matching_blocks_fitness,
+                         'lcs': lcs_fitness}
 
     def __init__(self,
                  target_phrase = DEFAULTS.target_phrase,
