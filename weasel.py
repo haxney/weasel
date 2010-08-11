@@ -5,6 +5,7 @@ from __future__ import division
 import random
 import string
 import sys
+import argparse
 
 # From https://secure.wikimedia.org/wikibooks/en/wiki/Algorithm_implementation/Strings/Levenshtein_distance#Python
 def levenshtein(s1, s2):
@@ -123,10 +124,31 @@ def main(argv=None):
     if argv is None:
         argv = sys.argv
 
-    sim = WeaselSimulator()
+    parser = argparse.ArgumentParser(description='Simulate a weasel.')
+    parser.add_argument('--seed', '-s', type=int, default=WeaselSimulator.DEFAULTS.seed,
+                        help='Seed for the random number generator.')
+    parser.add_argument('--characters', '-c', type=str, default=WeaselSimulator.DEFAULTS.characters,
+                        help='Valid characters to try in candidates.')
+    parser.add_argument('--num-children', '-n', type=int, default=WeaselSimulator.DEFAULTS.num_children,
+                        help='Number of children per generation.')
+    parser.add_argument('--mutate-chance', '-m', type=float, default=WeaselSimulator.DEFAULTS.mutate_chance,
+                        help='Chance that any individual character will mutate. A float in [0.0, 1.0].')
+    parser.add_argument('target', metavar='TARGET', type=str, default=WeaselSimulator.DEFAULTS.target_phrase,
+                        help='Target string.', nargs='?')
+    parser.add_argument('initial', metavar='INITIAL', type=str, default=None,
+                        help='Initial candidate string.', nargs='?')
+    args = parser.parse_args(argv[1:])
+
+    sim = WeaselSimulator(target_phrase=args.target,
+                          seed=args.seed,
+                          characters=args.characters,
+                          num_children=args.num_children,
+                          mutate_chance=args.mutate_chance,
+                          initial_phrase=args.initial)
     sim.print_initial()
     for ign in sim.generations():
         pass
+    return 0
 
 if __name__ == "__main__":
     sys.exit(main())
