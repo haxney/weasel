@@ -7,6 +7,7 @@ import string
 import sys
 import argparse
 import difflib
+import collections
 
 # From https://secure.wikimedia.org/wikibooks/en/wiki/Algorithm_implementation/Strings/Levenshtein_distance#Python
 def levenshtein(s1, s2):
@@ -101,6 +102,7 @@ class WeaselSimulator:
         num_children = 100
         mutate_chance = 0.05
         fitness_func = 'levenshtein'
+        rotate_chance = 0.05
 
     fitness_functions = {'levenshtein': levenshtein_fitness,
                          'sequence': sequence_matcher_fitness,
@@ -115,7 +117,8 @@ class WeaselSimulator:
                  num_children = DEFAULTS.num_children,
                  mutate_chance = DEFAULTS.mutate_chance,
                  initial_phrase = None,
-                 fitness_func = DEFAULTS.fitness_func):
+                 fitness_func = DEFAULTS.fitness_func,
+                 rotate_chance = DEFAULTS.rotate_chance):
         self.target_phrase = target_phrase
         self.phrase_length = len(self.target_phrase)
         self.rand = random.Random(seed)
@@ -128,6 +131,8 @@ class WeaselSimulator:
             self.initial_phrase = random_string(self.characters, self.phrase_length, self.rand)
         self.fitness_func = WeaselSimulator.fitness_functions[fitness_func]
         self.fitness_func_name = fitness_func
+        self.rotate_chance = rotate_chance
+
         self.generation = 0
         self.candidates = []
         self.best_candidate = self.initial_phrase
@@ -160,10 +165,25 @@ class WeaselSimulator:
         mutate."""
         return self.rand.choice(self.characters) if (self.flip(self.mutate_chance)) else letter
 
+    def rotate_maybe(self, source):
+        if self.flip(self.rotate_chance):
+            return self.rotate(source)
+        else:
+            return source
+
+    def rotate(self, source):
+        amount = self.rand.randint(-self.phrase_length, self.phrase_length)
+        d = collections.deque(source)
+        d.rotate(amount)
+        res = ''.join(d)
+        return res
+
     def mutate_copy(self, source):
+        #rotated = self.rotate_maybe(source)
         return ''.join(map(self.mutate_letter_maybe, source))
 
     def children(self, parent):
+        parent = self.rotate_maybe(parent)
         for i in xrange(self.num_children):
             yield self.mutate_copy(parent)
 
@@ -204,6 +224,9 @@ def main(argv=None):
     parser.add_argument('--fitness', '-f', type=str, default=WeaselSimulator.DEFAULTS.fitness_func,
                         help='The fitness function to use.', choices=WeaselSimulator.fitness_functions,
                         dest='fitness_func')
+    parser.add_argument('--rotate', '-r', type=float, default=WeaselSimulator.DEFAULTS.rotate_chance,
+                        help='Chance that the string will be rotated. A float in [0.0, 1.0].',
+                        dest='rotate_chance')
     parser.add_argument('target_phrase', metavar='TARGET', type=str, default=WeaselSimulator.DEFAULTS.target_phrase,
                         help='Target string.', nargs='?')
     parser.add_argument('initial_phrase', metavar='INITIAL', type=str, default=None,
